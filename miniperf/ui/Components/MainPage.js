@@ -21,7 +21,7 @@ import {purple,blue} from "@material-ui/core/colors";
 const theme = createMuiTheme({
     palette: {
         primary: {
-            main: blue[500],
+            main: '#11698e',
         },
         secondary: {
             main: '#f44336',
@@ -32,7 +32,7 @@ const theme = createMuiTheme({
 
 const useStyle = makeStyles((style)=>({
     Input:{
-        
+
     },
     Button:{
         'border-radius': 0

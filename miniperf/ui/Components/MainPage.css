@@ -29,8 +29,6 @@
     padding-right: 2px;
 }
 .right {
-    display: flex;
     width: 40vh;
     height: 100%;
-    flex-direction: column-reverse;
 }
