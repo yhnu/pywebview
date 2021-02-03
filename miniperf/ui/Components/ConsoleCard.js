@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {AppBar, Card, CardContent, makeStyles, Paper, Tab, Tabs} from "@material-ui/core";
 import {TreeItem, TreeView} from "@material-ui/lab";
 import {ChevronRight, ExpandMore} from "@material-ui/icons";
@@ -29,13 +29,25 @@ function HierarchyContent(){
             {Array.isArray(nodes.children) ? nodes.children.map((node) => renderTree(node)) : null}
         </TreeItem>
     );
+    const [hierarchyData,setHierarchyData] = React.useState({})
+
+    function getData(){
+        window.pywebview.api.test().then((res)=>{
+            console.log(res['data'])
+            setHierarchyData(res['data']['objs'])
+        })
+    }
+    useEffect(()=>{
+        console.log("第一次渲染");
+        getData()
+    },[])
     return(
         <TreeView
             defaultCollapseIcon={<ExpandMore />}
             defaultExpandIcon={<ChevronRight />}
             defaultExpanded={['root']}
         >
-            {renderTree(testData)}
+            {renderTree(hierarchyData)}
         </TreeView>
     )
 }
@@ -62,7 +74,8 @@ function Content(props){
 
 export default function ConsoleCard () {
     const classes = useStyles()
-    const [page,setPage] = React.useState(0)
+    const [page,setPage] = React.useState(1)
+
     const ChangePage = (e,v)=>{
         setPage(v)
     }

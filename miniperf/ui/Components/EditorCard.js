@@ -8,6 +8,7 @@ import 'codemirror/mode/clike/clike'
 import 'codemirror/mode/python/python'
 import {Card, CardContent, CardHeader, IconButton, makeStyles, TextareaAutosize} from "@material-ui/core";
 import {Adb, GetApp, RotateLeft, SendOutlined, Stop} from "@material-ui/icons";
+import AceEditor from "react-ace";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -16,11 +17,18 @@ const useStyles = makeStyles((theme) => ({
         // background:'lightgrey'
     },
     content:{
-        height: '100%'
+        height: '70%',
+        position:'relative',
+        flex:'1'
     },
     textArea:{
-        height: '100%',
-        width: '100%'
+        height: '100% !important',
+        width: '100% !important',
+        position:'absolute',
+        left:0,
+        right:0,
+        bottom:0,
+        top:0
     }
 }));
 
@@ -56,12 +64,11 @@ export default function EditorCard () {
                 {/*    */}
                 {/*>*/}
                 {/*</CodeMirror>*/}
-                <TextareaAutosize
-                    rowsMax={20}
-                    aria-label="maximum height"
-                    placeholder="Maximum 4 rows"
-                    defaultValue="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
-      ut labore et dolore magna aliqua."
+                <AceEditor
+                    mode="java"
+                    theme="github"
+                    name="UNIQUE_ID_OF_DIV"
+                    editorProps={{ $blockScrolling: true }}
                     className={classes.textArea}
                 />
             </CardContent>
