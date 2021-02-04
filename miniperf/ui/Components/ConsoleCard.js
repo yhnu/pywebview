@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useRef} from "react";
 import {AppBar, Card, CardContent, makeStyles, Paper, Tab, Tabs} from "@material-ui/core";
 import {TreeItem, TreeView} from "@material-ui/lab";
 import {ChevronRight, ExpandMore} from "@material-ui/icons";
@@ -12,6 +12,28 @@ const testData = {
             name : '2'
         }
     ]
+}
+
+
+
+function useInterval(callback, delay) {
+    const savedCallback = useRef();
+
+    // Remember the latest callback.
+    useEffect(() => {
+        savedCallback.current = callback;
+    });
+
+    // Set up the interval.
+    useEffect(() => {
+        function tick() {
+            savedCallback.current();
+        }
+        if (delay !== null) {
+            let id = setInterval(tick, delay);
+            return () => clearInterval(id);
+        }
+    }, [delay]);
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -53,8 +75,32 @@ function HierarchyContent(){
 }
 
 function ConsoleContent(){
+
+    const [consoleData,setConsoleData] = React.useState([])
+    const getNewLog =  function(){
+        window.pywebview.api.PythonOutput().then((res)=>{
+            console.log(typeof res)
+            console.log('consoleData',consoleData)
+            if(res === "405null")
+            {
+
+            }
+            else{
+                let l = consoleData
+                l.push(res)
+                setConsoleData([...l])
+            }
+        })
+    }
+    useInterval(()=>{
+        getNewLog()
+    },1000)
     return(
-        <div>ConsoleContent</div>
+        <div>{
+            consoleData.map((item)=>{
+                return <p>{item}</p>
+            })
+        }</div>
     )
 }
 

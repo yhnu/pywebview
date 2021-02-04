@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import time
@@ -11,11 +12,14 @@ import glob
 import wcwidth
 import subprocess
 from openpyxl import load_workbook
+from miniperf.adb import Device
+
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 python_path = os.path.join(os.path.split(sys.executable)[0], "python.exe")
 
 g_webview = None
+phone = None
 
 
 class Header(object):
@@ -27,6 +31,10 @@ class Header(object):
         self.FiledType = _type
         self.Default = _map.get(self.FiledType, "")
         self.SubType = _subtype
+
+
+def connect(sn: str):
+    phone = Device(sn)
 
 
 def registered_webview(webview):
@@ -65,9 +73,10 @@ def select_app(window):
             return {"ok": False, "msg": "无法选择应用"}
     return {"ok": False, "msg": "未选择文件"}
 
+
 def get_svn_status(xlsxpath):
     ret = {}
-    output = subprocess.check_output([get_tpsvn(),'status',xlsxpath]).decode().replace('\r', '').replace(' ', '')
+    output = subprocess.check_output([get_tpsvn(), 'status', xlsxpath]).decode().replace('\r', '').replace(' ', '')
     lines = output.split('\n')
     for line in lines:
         status = line[:1]
@@ -75,6 +84,7 @@ def get_svn_status(xlsxpath):
         # ret.append({'status': line[:1], 'name': line[1:]})
         ret[name] = status
     return ret
+
 
 def rpc_get_file_list(xlsxpath):
     file_list = []
@@ -88,7 +98,6 @@ def rpc_get_file_list(xlsxpath):
                 status = files_status.get(f, 'o')
                 file_list.append({'name': os.path.basename(f), 'path': f, 'status': status})
 
-        
         # list = output.replace(' ', '')
         # list = list[2:]
         # list = list.split(r'\n')        
@@ -101,7 +110,7 @@ def rpc_get_file_list(xlsxpath):
         files = glob.glob(xlsxpath + '/**/*.xls*', recursive=True)
         for f in files:
             if not os.path.basename(f).startswith('~'):
-                file_list.append({'name': os.path.basename(f), 'path': f, 'status':'o'})
+                file_list.append({'name': os.path.basename(f), 'path': f, 'status': 'o'})
     # print(xlsxpath)
     # files = glob.glob(xlsxpath + '/**/*.xls*', recursive=True)
     # for f in files:
@@ -111,11 +120,29 @@ def rpc_get_file_list(xlsxpath):
     return file_list
 
 
+def get_scrcpy():
+    global phone
+    if phone == None:
+        return
+    res = phone.screenshot()
+    print('img:', res)
+    return res.convert("RGB")
+
+
+def loadTree():
+    with open(r"D:\frontProject\pywebview\miniperf\asset\data.json", 'r') as f:
+        loadData = json.load(f)
+        print(loadData)
+        return {"ok": True, "data": loadData}
+
+
 def get_cstemplate_file():
     return os.path.join(ROOT_DIR, "asset", "template", "CSTemplate.cs")
 
+
 def get_tpsvn():
     return os.path.join(ROOT_DIR, "asset", "tpsvn", "svn.exe")
+
 
 def rpc_gen_cscode(xlsxpath, codepath):
     if not os.path.exists(xlsxpath):
@@ -136,8 +163,9 @@ def rpc_gen_cscode(xlsxpath, codepath):
 
         fileds = []
         template_filed = '\tpublic __FILED__ { get; private set; } // __COMMENT__\n'
-        for i in range(0, len(comments)):     
-            header = Header(_comment=ws[3][i].value, _subtype=ws[2][i].value, _filed=ws[4][i].value, _type=ws[1][i].value, )       
+        for i in range(0, len(comments)):
+            header = Header(_comment=ws[3][i].value, _subtype=ws[2][i].value, _filed=ws[4][i].value,
+                            _type=ws[1][i].value, )
             line = template_filed.replace(
                 "__FILED__", f"{header.FiledType} {header.Filed}")
             line = line.replace("__COMMENT__", f"{header.Comment}")
@@ -147,7 +175,8 @@ def rpc_gen_cscode(xlsxpath, codepath):
         fileds_parser = []
         template_filed = '\t\t__FILED__ = Get___TYPE__(cellStrs[__INDEX__], "");\n'
         for i in range(0, len(comments)):
-            header = Header(_comment=ws[3][i].value, _subtype=ws[2][i].value, _filed=ws[4][i].value, _type=ws[1][i].value, )       
+            header = Header(_comment=ws[3][i].value, _subtype=ws[2][i].value, _filed=ws[4][i].value,
+                            _type=ws[1][i].value, )
             header_list.append(header)
             if not header.Filed:
                 return {"ok": False, "msg": f"[2]{i} is None"}
@@ -219,11 +248,12 @@ def rpc_gen_mgrcode(xlsxpath, mgrpath):
         traceback.print_exc()
         return {"ok": False, "msg": "应用产生异常,请联系开发人员"}
 
+
 def dump(xlsxpath):
-    def wstring(s,width):        
-        count = wcwidth.wcswidth(s)-len(s)
-        width = width - count if width >= count else 0        
-        return '{0:{1}{2}{3}}'.format(s,'','^',width)      
+    def wstring(s, width):
+        count = wcwidth.wcswidth(s) - len(s)
+        width = width - count if width >= count else 0
+        return '{0:{1}{2}{3}}'.format(s, '', '^', width)
 
     wb = load_workbook(filename=xlsxpath)
     ws = wb.active
@@ -239,7 +269,7 @@ def rpc_gen_tabfile(xlsxpath, tabdir):
         if not os.path.exists(tabdir):
             return {"ok": False, "msg": f"未找到对应文件/{tabdir}"}
         dump(xlsxpath)
-        
+
         wb = load_workbook(filename=xlsxpath)
         ws = wb.active
         row_count = ws.max_row
@@ -250,7 +280,8 @@ def rpc_gen_tabfile(xlsxpath, tabdir):
         tab_fullpath = f"{tabdir}/{tab_name}.csv"
         tab_header = None
         for i in range(0, len(ws[1])):
-            tab_header = Header(_comment=ws[3][i].value, _subtype=ws[2][i].value, _filed=ws[4][i].value, _type=ws[1][i].value, )
+            tab_header = Header(_comment=ws[3][i].value, _subtype=ws[2][i].value, _filed=ws[4][i].value,
+                                _type=ws[1][i].value, )
 
         with open(tab_fullpath, 'wb') as f:
             for i in range(3, ws.max_row + 1):

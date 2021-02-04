@@ -6,6 +6,7 @@ jdcal==1.4.1
 et-xmlfile==1.0.1
 wcwidth
 -e .
+-e git+git@gitlab.testplus.cn:UAuto/u3driver.git#egg=u3driver
 
 
 

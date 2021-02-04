@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useRef, useState} from 'react'
 import {UnControlled as CodeMirror} from "react-codemirror2";
 
 import {
@@ -42,6 +42,20 @@ const useStyle = makeStyles((style)=>({
 
 export default function MainPage(){
     const classes = useStyle()
+    const connect = function (){
+        window.pywebview.api.connect({'sn':sn}).then((res)=>{
+            console.log(res)
+        })
+    }
+    const test = function (){
+        window.pywebview.api.PythonOutput().then((res)=>{
+            console.log(res)
+        })
+    }
+    const [sn, setSN] = useState("");
+    const changeValue = (e) =>{
+        setSN(e.target.value);
+    }
         return (
             // <div className={classes.root}>
             <ThemeProvider theme={theme}>
@@ -53,12 +67,15 @@ export default function MainPage(){
                                 type={'text'}
                                 label="Standard"
                                 className={classes.Input}
+                                value={sn}
+                                onChange={changeValue}
                                 endAdornment={
                                     <InputAdornment position="end">
-                                        <Button variant="contained" color="primary" size="medium" disableElevation className={classes.Button}>连接</Button>
+                                        <Button variant="contained" color="primary" size="medium" disableElevation className={classes.Button} onClick={connect}>连接</Button>
                                     </InputAdornment>
                                 }
                             />
+                            <Button variant="contained" color="primary" size="medium" disableElevation className={classes.Button} onClick={test}>test</Button>
                         </Toolbar>
                     </AppBar>
                     <div id={'content'}>
