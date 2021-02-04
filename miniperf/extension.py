@@ -34,7 +34,18 @@ class Header(object):
 
 
 def connect(sn: str):
-    phone = Device(sn)
+    try:
+        phone = Device(sn)
+        return {"ok": True, "msg": f"连接成功：{sn}"}
+    except Exception as e:
+        return {"ok": False, "msg": f"连接失败：{e}"}
+
+def disConnect():
+    global phone
+    if not phone is None:
+        phone.disConnect()
+        phone = None
+        return {"ok": True, "msg": f"已断开"}
 
 
 def registered_webview(webview):

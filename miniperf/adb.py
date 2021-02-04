@@ -17,6 +17,8 @@ class Device:
         self.device = AltrunUnityDriver(serial_num,'','10.11.249.48')
         pass
 
+    def disConnect(self):
+        self.device.stop()
     # def screenshot(self):
     #     adb = adb_path()
     #     cmdline = adb + ' -s ' + self.serial_num + ' shell screencap -p'

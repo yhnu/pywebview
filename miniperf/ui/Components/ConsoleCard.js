@@ -94,7 +94,7 @@ function ConsoleContent(){
     }
     useInterval(()=>{
         getNewLog()
-    },1000)
+    },500)
     return(
         <div>{
             consoleData.map((item)=>{

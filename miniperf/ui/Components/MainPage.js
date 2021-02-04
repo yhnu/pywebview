@@ -1,11 +1,10 @@
 import React, {useRef, useState} from 'react'
-import {UnControlled as CodeMirror} from "react-codemirror2";
-
+import MuiAlert from '@material-ui/lab/Alert';
 import {
     AppBar,
     Button,
     Input,
-    InputAdornment,
+    InputAdornment, Snackbar,
     Toolbar
 } from "@material-ui/core";
 import { createMuiTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles';
@@ -39,12 +38,36 @@ const useStyle = makeStyles((style)=>({
     }
 }))
 
+function Alert(props) {
+    return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
 
 export default function MainPage(){
     const classes = useStyle()
+    const [okOpen, setOkOpen] = React.useState(false);
+    const [isConnected, setIsConnected] = React.useState(false);
+    const [message, setMessage] = React.useState('');
+    const handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOkOpen(false);
+    };
+
+
     const connect = function (){
         window.pywebview.api.connect({'sn':sn}).then((res)=>{
-            console.log(res)
+            setIsConnected(res['ok'])
+            setMessage(res['msg'])
+            setOkOpen(true)
+        })
+    }
+    const disConnect = function (){
+        window.pywebview.api.disConnect().then((res)=>{
+            setIsConnected(false)
+            setMessage(res['msg'])
+            setOkOpen(true)
         })
     }
     const test = function (){
@@ -71,11 +94,12 @@ export default function MainPage(){
                                 onChange={changeValue}
                                 endAdornment={
                                     <InputAdornment position="end">
-                                        <Button variant="contained" color="primary" size="medium" disableElevation className={classes.Button} onClick={connect}>连接</Button>
+                                        <Button variant="contained" color="primary" size="medium" disableElevation className={classes.Button} onClick={connect} disabled={isConnected}>连接</Button>
+                                        <Button variant="contained" color="primary" size="medium" disableElevation className={classes.Button} onClick={disConnect} disabled={!isConnected}>断开</Button>
                                     </InputAdornment>
                                 }
                             />
-                            <Button variant="contained" color="primary" size="medium" disableElevation className={classes.Button} onClick={test}>test</Button>
+                            <Button variant="contained" color="primary" size="medium" disableElevation className={classes.Button}>test</Button>
                         </Toolbar>
                     </AppBar>
                     <div id={'content'}>
@@ -92,6 +116,11 @@ export default function MainPage(){
                         </div>
                     </div>
                 </div>
+                <Snackbar open={okOpen} autoHideDuration={6000} onClose={handleClose}>
+                    <Alert severity="success" onClose={handleClose}>
+                        {message}
+                    </Alert>
+                </Snackbar>
             </ThemeProvider>
             // </div>
         )
